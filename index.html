@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en-CA">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proof Builder: Math 2201 Unit 7</title>
+<style>
+  :root{
+    --ink:#1c2430; --muted:#5a6572; --accent:#0b5cad; --accent-dark:#084a8a;
+    --ok:#177245; --bad:#b3261e; --card:#ffffff; --bg:#eef2f6; --line:#d4dce4;
+    --soft:#f4f8fc; --warn:#8a5a00;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.45;}
+  .wrap{max-width:779px;margin:0 auto;padding:16px 14px 48px;}
+  header{margin:10px 0 14px;}
+  h1{font-size:1.7rem;margin:0 0 2px;}
+  h2{font-size:1.3rem;margin:0 0 6px;}
+  h3{font-size:1.08rem;margin:14px 0 6px;}
+  .subtitle{color:var(--muted);font-size:1rem;margin:0 0 8px;}
+  .instruction{font-size:1.02rem;margin:0;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:16px;margin:14px 0;box-shadow:0 1px 3px rgba(20,40,60,.06);}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+  .controls .spacer{flex:1;}
+  button{font:inherit;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:#fff;
+    padding:9px 16px;border-radius:8px;min-height:44px;font-weight:600;}
+  button:hover{background:var(--accent-dark);}
+  button.secondary{background:#fff;color:var(--accent);}
+  button.secondary:hover{background:var(--soft);}
+  button[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent);}
+  button.secondary[aria-pressed="true"]{background:var(--accent);color:#fff;}
+  button:disabled{opacity:.55;cursor:default;}
+  button:focus-visible,input:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid #f2b01e;outline-offset:2px;}
+  .modebtns{display:flex;flex-wrap:wrap;gap:8px;}
+  .offers{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:12px 0;}
+  .offer{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--soft);}
+  .offer h3{margin:0 0 4px;font-size:1.05rem;}
+  .offer p{margin:4px 0;}
+  .price{font-size:1.25rem;font-weight:700;}
+  .field{display:flex;flex-direction:column;gap:3px;margin:10px 0 0;}
+  .field label{font-size:.88rem;color:var(--muted);font-weight:600;}
+  .field input[type=text],.field input[type=number]{padding:9px 10px;font:inherit;font-size:1.02rem;border:1px solid var(--line);
+    border-radius:8px;min-height:44px;width:100%;background:#fff;}
+  textarea{padding:9px 10px;font:inherit;border:1px solid var(--line);border-radius:8px;width:100%;min-height:84px;background:#fff;}
+  .pickrow{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 0;}
+  .pickopt{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;gap:8px;align-items:center;background:#fff;font-weight:600;}
+  .pickopt input{width:20px;height:20px;}
+  .checkrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 0;}
+  .feedback{margin:12px 0 0;border-radius:10px;padding:12px 14px;display:none;}
+  .feedback.show{display:block;}
+  .feedback.ok{background:#f2faf5;border:1px solid var(--ok);}
+  .feedback.bad{background:#fdf3f2;border:1px solid var(--bad);}
+  .feedback.info{background:var(--soft);border:1px solid var(--line);}
+  .feedback p{margin:4px 0;}
+  .feedback ul{margin:6px 0;padding-left:20px;}
+  .feedback .sumline{font-weight:700;}
+  .feedback.ok .sumline{color:var(--ok);}
+  .feedback.bad .sumline{color:var(--bad);}
+  table.plan{border-collapse:collapse;width:100%;font-size:.95rem;margin:10px 0;}
+  table.plan th,table.plan td{border:1px solid var(--line);padding:5px 8px;text-align:left;}
+  table.plan th{background:var(--soft);}
+  .hidden{display:none !important;}
+  .reqbox{border:1px solid var(--line);background:var(--soft);border-radius:10px;padding:12px 14px;margin:12px 0;}
+  .reqbox p{margin:4px 0;}
+  .bigprompt{font-size:1.1rem;font-weight:600;}
+  .workline{font-size:1.05rem;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px 12px;}
+  .note{color:var(--muted);font-size:.94rem;}
+  .steppool{display:flex;flex-direction:column;gap:8px;margin:10px 0;}
+  .stepcard{text-align:left;background:#fff;color:var(--ink);border:1px solid var(--line);font-weight:500;}
+  .stepcard:hover{background:var(--soft);}
+  .proofcol{border:1px dashed var(--accent);border-radius:10px;padding:10px 12px;min-height:56px;background:var(--soft);}
+  .proofcol ol{margin:6px 0;padding-left:22px;}
+  .proofcol li{margin:4px 0;cursor:pointer;}
+  .oplist{margin:8px 0;padding-left:22px;}
+  .oplist li{margin:4px 0;}
+  #decisionSheet{background:#fff;}
+  #decisionSheet table{border-collapse:collapse;width:100%;font-size:.95rem;margin:10px 0;}
+  #decisionSheet th,#decisionSheet td{border:1px solid var(--line);padding:5px 8px;text-align:left;}
+  #decisionSheet th{background:var(--soft);}
+  @media (max-width:680px){ h1{font-size:1.4rem;} .offers{grid-template-columns:1fr;} }
+  @media print{
+    body{background:#fff;}
+    .wrap{max-width:none;padding:0;}
+    body *{visibility:hidden;}
+    #decisionSheet,#decisionSheet *{visibility:visible;}
+    #decisionSheet{position:absolute;left:0;top:0;width:100%;border:none;box-shadow:none;margin:0;padding:0;}
+    #decisionSheet textarea{border:1px solid #999;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Proof Builder</h1>
+    <p class="subtitle">Math 2201, Unit 7: Inductive and Deductive Reasoning (Indicators 2.5, 2.6)</p>
+    <p class="instruction">This is practice: build proofs step by step, run number tricks, and design your own. Nothing is recorded and nothing leaves this page. One idea runs through everything here: examples are evidence, never a proof. A proof must cover every case, not just the cases you tried.</p>
+  </header>
+
+  <div class="card controls no-print" role="group" aria-label="Choose a mode">
+    <div class="modebtns">
+      <button type="button" id="modeGuided" aria-pressed="true">1. Guided Proofs</button>
+      <button type="button" id="modeTrick" class="secondary" aria-pressed="false">2. Number Trick Proofs</button>
+      <button type="button" id="modeCreate" class="secondary" aria-pressed="false">3. Create Your Own Trick</button>
+    </div>
+  </div>
+
+  <main>
+    <!-- Mode 1: Guided Proofs -->
+    <section class="card" id="panelGuided" aria-labelledby="gHeading">
+      <h2 id="gHeading">Guided Proofs</h2>
+      <p>Each round states a claim about every case, not just one example. Work through three stages: choose a representation that forces the claim to be about all cases, assemble the proof steps in order, then choose the conclusion that the steps actually support.</p>
+      <p class="note" id="gHint"></p>
+      <div class="reqbox">
+        <p class="bigprompt" id="gClaim"></p>
+      </div>
+      <h3>Stage 1: Choose the representation</h3>
+      <p id="gRepPrompt"></p>
+      <fieldset style="border:none;padding:0;margin:0;">
+        <legend style="font-weight:600;">Which representation covers every case?</legend>
+        <div class="pickrow" id="gRepPicks" style="flex-direction:column;align-items:stretch;"></div>
+      </fieldset>
+      <h3>Stage 2: Assemble the proof</h3>
+      <p>Click step cards in the order the proof needs them. Click a step in your proof to send it back. Watch out: some cards do not belong in this proof at all.</p>
+      <div class="steppool" id="gPool"></div>
+      <div class="proofcol" aria-label="Your proof so far">
+        <strong>Your proof, in order:</strong>
+        <ol id="gAssembly"></ol>
+        <p class="note" id="gAssemblyEmpty">No steps chosen yet.</p>
+      </div>
+      <div class="checkrow">
+        <button type="button" id="gClearSteps" class="secondary">Clear steps</button>
+      </div>
+      <h3>Stage 3: Choose the conclusion</h3>
+      <fieldset style="border:none;padding:0;margin:0;">
+        <legend style="font-weight:600;">Which conclusion do the steps support?</legend>
+        <div class="pickrow" id="gConcPicks" style="flex-direction:column;align-items:stretch;"></div>
+      </fieldset>
+      <div class="checkrow">
+        <button type="button" id="gCheck">Check my proof</button>
+        <button type="button" id="gNew" class="secondary">New proof</button>
+      </div>
+      <div class="feedback" id="gFeedback" aria-live="polite"></div>
+    </section>
+
+    <!-- Mode 2: Number Trick Proofs -->
+    <section class="card hidden" id="panelTrick" aria-labelledby="tHeading">
+      <h2 id="tHeading">Number Trick Proofs</h2>
+      <p>A number trick always lands on the same result, no matter what number you start with. Run it on your own numbers first to see the constancy, then prove it with symbols. Remember: two starting numbers, or two hundred starting numbers, still would not prove it. The symbols do the proving, because they stand for every possible starting number.</p>
+      <div class="reqbox">
+        <p class="bigprompt">The trick</p>
+        <ol class="oplist" id="tWords"></ol>
+      </div>
+      <h3>Try it with your numbers</h3>
+      <div class="field" style="max-width:320px;">
+        <label for="tX1">First starting number</label>
+        <input type="text" inputmode="decimal" id="tX1" autocomplete="off" value="7">
+      </div>
+      <div class="field" style="max-width:320px;">
+        <label for="tX2">Second starting number (try a negative or a fraction)</label>
+        <input type="text" inputmode="decimal" id="tX2" autocomplete="off" value="-4">
+      </div>
+      <div class="checkrow">
+        <button type="button" id="tRun">Run the trick on both numbers</button>
+      </div>
+      <div id="tRunOut"></div>
+      <h3>Now prove it: assemble the symbolic steps</h3>
+      <p>Click the symbolic steps in order. Each line shows what the expression looks like after that step.</p>
+      <div class="steppool" id="tPool"></div>
+      <div class="proofcol" aria-label="Your symbolic proof so far">
+        <strong>Your proof, in order:</strong>
+        <ol id="tAssembly"></ol>
+        <p class="note" id="tAssemblyEmpty">No steps chosen yet.</p>
+      </div>
+      <div class="checkrow">
+        <button type="button" id="tClearSteps" class="secondary">Clear steps</button>
+      </div>
+      <h3>Choose the conclusion</h3>
+      <fieldset style="border:none;padding:0;margin:0;">
+        <legend style="font-weight:600;">Which conclusion does the symbolic proof support?</legend>
+        <div class="pickrow" id="tConcPicks" style="flex-direction:column;align-items:stretch;"></div>
+      </fieldset>
+      <div class="checkrow">
+        <button type="button" id="tCheck">Check my proof</button>
+        <button type="button" id="tNew" class="secondary">New trick</button>
+      </div>
+      <div class="feedback" id="tFeedback" aria-live="polite"></div>
+    </section>
+
+    <!-- Mode 3: Create -->
+    <section class="card hidden" id="panelCreate" aria-labelledby="crHeading">
+      <h2 id="crHeading">Create Your Own Trick</h2>
+      <p>Design your own number trick, starting from a number you call x. Add operations one at a time. The builder view shows your current expression in symbols, so you can see whether x is still in it. A trick that always gives the same answer needs x to disappear completely: the final expression must be a plain number.</p>
+      <p class="workline">Builder view: <strong id="crExpr">x</strong></p>
+      <div id="crWarn"></div>
+      <div class="field" style="max-width:220px;">
+        <label for="crNum">Constant to add or subtract (1 to 20)</label>
+        <input type="number" id="crNum" min="1" max="20" value="5">
+      </div>
+      <div class="field" style="max-width:220px;">
+        <label for="crFactor">Factor to multiply or divide by (2 to 6)</label>
+        <input type="number" id="crFactor" min="2" max="6" value="3">
+      </div>
+      <div class="pickrow">
+        <button type="button" id="crAdd">Add the constant</button>
+        <button type="button" id="crSub" class="secondary">Subtract the constant</button>
+        <button type="button" id="crMul" class="secondary">Multiply by the factor</button>
+        <button type="button" id="crDiv" class="secondary">Divide by the factor</button>
+        <button type="button" id="crAddOrig" class="secondary">Add your starting number</button>
+        <button type="button" id="crSubOrig" class="secondary">Subtract your starting number</button>
+      </div>
+      <h3>Your trick so far (maximum 7 operations)</h3>
+      <ol class="oplist" id="crOps"></ol>
+      <p class="note" id="crOpsEmpty">No operations yet. Your trick starts with: pick any number, call it x.</p>
+      <div class="checkrow">
+        <button type="button" id="crUndo" class="secondary">Undo last operation</button>
+        <button type="button" id="crClear" class="secondary">Clear all operations</button>
+      </div>
+      <div class="field" style="max-width:320px;">
+        <label for="crPredict">My predicted final result (a single number, if my trick always gives the same answer)</label>
+        <input type="text" inputmode="decimal" id="crPredict" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="crConclusion">My conclusion, in my own words (why does your trick always give that result?)</label>
+        <textarea id="crConclusion" placeholder="Example: The x terms cancel out in the last step, so what is left does not depend on the starting number at all."></textarea>
+      </div>
+      <div class="checkrow">
+        <button type="button" id="crCheck">Check my trick</button>
+      </div>
+      <div class="feedback" id="crFeedback" aria-live="polite"></div>
+    </section>
+
+    <!-- Proof Record -->
+    <section class="card" id="decisionSheet" aria-labelledby="dsHeading">
+      <h2 id="dsHeading">Proof Record</h2>
+      <p class="note no-print">This sheet fills in from the proofs you complete above. A completed create-mode trick is recorded here in full, with your own conclusion, so you can print this sheet and submit it to the assignment folder if your teacher asks for it.</p>
+      <div id="dsBody">
+        <p>No completed proof yet. Finish a guided proof, a trick proof, or your own trick above and it will appear here.</p>
+      </div>
+      <div class="field">
+        <label for="dsJustify">My notes (anything you want to remember about how these proofs work, in your own words)</label>
+        <textarea id="dsJustify" placeholder="Example: A proof has to use symbols that stand for every case. Trying numbers only shows the claim worked for those numbers."></textarea>
+      </div>
+      <div class="checkrow no-print">
+        <button type="button" id="printBtn">Print proof record</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+"use strict";
+// ==GENERATOR==
+// Pure generator and checking logic for Proof Builder. No DOM access here.
+// Every function takes an rng (a function returning a number in [0, 1)) so the
+// harness can drive generation with a seeded generator. When rng is omitted,
+// Math.random is used.
+//
+// How guided proof families are made machine-checkable:
+// - claimCheck takes the actual numbers the claim is about and returns true
+//   when the claimed property holds for them. For a one-number family whose
+//   other numbers are forced (consecutive families), missing arguments are
+//   derived from the first.
+// - representation.optionForms[i] is an array of functions of the free
+//   parameters that build the numbers representation option i describes.
+//   The correct option builds numbers that always satisfy the premise and
+//   that change when the parameters change. A generic distractor builds
+//   numbers that can break the premise. An example distractor builds fixed
+//   numbers that never change.
+// - stepForms is an array of functions of the free parameters giving the
+//   value of the quantity under study (the sum or the product) after each
+//   canonical step. For these families each step rewrites the same quantity,
+//   so every stepForm must equal the original quantity computed directly.
+// - trace(valuesArray) evaluates stepForms in order.
+// Trick and create-mode operations are data: {op, value} with op one of
+// "mul", "add", "div", "sub", "subOriginal", "addOriginal". applyOps folds
+// an operation list into a symbolic expression {a, b} meaning a*x + b.
+// runTrick evaluates the same list numerically for one starting number.
+
+function makeRng(seed) {
+  var a = (seed >>> 0) || 1;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    var t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function rngOr(rng) { return (typeof rng === "function") ? rng : Math.random; }
+function rPick(rng, arr) { return arr[Math.floor(rngOr(rng)() * arr.length)]; }
+function rInt(rng, min, max) { return min + Math.floor(rngOr(rng)() * (max - min + 1)); }
+function rShuffle(rng, arr) {
+  var r = rngOr(rng);
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(r() * (i + 1));
+    var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+}
+function isInt(v) { return Math.abs(v - Math.round(v)) < 1e-9; }
+function modPos(v, m) { return ((v % m) + m) % m; }
+function formatNumber(v) {
+  if (isInt(v)) return String(Math.round(v));
+  for (var d = 2; d <= 12; d++) {
+    if (isInt(v * d)) return Math.round(v * d) + "/" + d;
+  }
+  return String(Math.round(v * 10000) / 10000);
+}
+function fmtExpr(a, b) {
+  if (Math.abs(a) < 1e-12) return formatNumber(b);
+  var term;
+  if (Math.abs(a - 1) < 1e-12) term = "x";
+  else if (Math.abs(a + 1) < 1e-12) term = "-x";
+  else term = formatNumber(a) + "x";
+  if (Math.abs(b) < 1e-12) return term;
+  if (b > 0) return term + " + " + formatNumber(b);
+  return term + " - " + formatNumber(-b);
+}
+
+// ---- Guided proof families ----
+
+var LETTER_PAIRS = [["a", "b"], ["n", "m"], ["x", "y"], ["p", "q"]];
+
+function finishFamily(fam) {
+  fam.trace = function (values) {
+    return fam.stepForms.map(function (f) {
+      return f.apply(null, values);
+    });
+  };
+  return fam;
+}
+
+function familyOddPlusOdd(L) {
+  var a = L[0], b = L[1];
+  return finishFamily({
+    id: "oddPlusOdd",
+    title: "Sum of two odd numbers",
+    claimText: "Claim: the sum of any two odd numbers is even.",
+    vars: [a, b],
+    params: {},
+    claimCheck: function (x, y) { return modPos(x + y, 2) === 0; },
+    representation: {
+      prompt: "Odd numbers are one more than a multiple of 2. Which way of writing the two numbers builds that in, for every odd number at once?",
+      options: [
+        "Let the odd numbers be 2" + a + " + 1 and 2" + b + " + 1.",
+        "Let the odd numbers be " + a + " and " + b + ".",
+        "Let the odd numbers be 3 and 5."
+      ],
+      correctIndex: 0,
+      optionKinds: ["algebraic", "generic", "example"],
+      optionForms: [
+        [function (p, q) { return 2 * p + 1; }, function (p, q) { return 2 * q + 1; }],
+        [function (p, q) { return p; }, function (p, q) { return q; }],
+        [function (p, q) { return 3; }, function (p, q) { return 5; }]
+      ],
+      optionFeedback: [
+        "",
+        "That representation lets " + a + " and " + b + " be any numbers at all, including even ones. It does not build in that the numbers are odd, so a proof from it would not be about odd numbers.",
+        "That is one example, not a representation of every case. Examples are evidence, never a proof: showing 3 + 5 works says nothing about 41 + 17."
+      ]
+    },
+    steps: [
+      "Write the sum: (2" + a + " + 1) + (2" + b + " + 1).",
+      "Group the multiples of 2 and the ones: 2" + a + " + 2" + b + " + 2.",
+      "Factor out 2: 2(" + a + " + " + b + " + 1).",
+      "Note that " + a + " + " + b + " + 1 is a whole number, so 2(" + a + " + " + b + " + 1) is 2 times a whole number."
+    ],
+    stepForms: [
+      function (p, q) { return (2 * p + 1) + (2 * q + 1); },
+      function (p, q) { return 2 * p + 2 * q + 2; },
+      function (p, q) { return 2 * (p + q + 1); },
+      function (p, q) { return 2 * (p + q + 1); }
+    ],
+    distractors: [
+      "Check the claim with 3 + 5 = 8, so the sum is even.",
+      "Factor out 3: 3(" + a + " + " + b + ")."
+    ],
+    conclusionOptions: [
+      "The sum equals 2 times a whole number, so the sum of any two odd numbers is even.",
+      "The sum is even because it worked for 3 and 5.",
+      "The sum is odd, because odd plus odd should stay odd."
+    ],
+    conclusionIndex: 0,
+    conclusionFeedback: [
+      "",
+      "That conclusion rests on one example. Examples are evidence, never a proof.",
+      "That conclusion contradicts the final step: the sum was rewritten as 2 times a whole number, which is the definition of an even number."
+    ]
+  });
+}
+
+function familyEvenPlusEven(L) {
+  var a = L[0], b = L[1];
+  return finishFamily({
+    id: "evenPlusEven",
+    title: "Sum of two even numbers",
+    claimText: "Claim: the sum of any two even numbers is even, so it is divisible by 2.",
+    vars: [a, b],
+    params: {},
+    claimCheck: function (x, y) { return modPos(x + y, 2) === 0; },
+    representation: {
+      prompt: "Even numbers are multiples of 2. Which way of writing the two numbers builds that in, for every even number at once?",
+      options: [
+        "Let the even numbers be 2" + a + " and 2" + b + ".",
+        "Let the even numbers be " + a + " and " + b + ".",
+        "Let the even numbers be 4 and 10."
+      ],
+      correctIndex: 0,
+      optionKinds: ["algebraic", "generic", "example"],
+      optionForms: [
+        [function (p, q) { return 2 * p; }, function (p, q) { return 2 * q; }],
+        [function (p, q) { return p; }, function (p, q) { return q; }],
+        [function (p, q) { return 4; }, function (p, q) { return 10; }]
+      ],
+      optionFeedback: [
+        "",
+        "That representation lets " + a + " and " + b + " be any numbers at all, including odd ones. It does not build in that the numbers are even.",
+        "That is one example, not a representation of every case. Examples are evidence, never a proof."
+      ]
+    },
+    steps: [
+      "Write the sum: 2" + a + " + 2" + b + ".",
+      "Group the terms: 2" + a + " + 2" + b + " stays as a sum of two multiples of 2.",
+      "Factor out 2: 2(" + a + " + " + b + ").",
+      "Note that " + a + " + " + b + " is a whole number, so 2(" + a + " + " + b + ") is 2 times a whole number."
+    ],
+    stepForms: [
+      function (p, q) { return 2 * p + 2 * q; },
+      function (p, q) { return 2 * p + 2 * q; },
+      function (p, q) { return 2 * (p + q); },
+      function (p, q) { return 2 * (p + q); }
+    ],
+    distractors: [
+      "Check the claim with 4 + 10 = 14, so the sum is even.",
+      "Factor out 4: 4(" + a + " + " + b + ")."
+    ],
+    conclusionOptions: [
+      "The sum equals 2 times a whole number, so the sum of any two even numbers is divisible by 2.",
+      "The sum is divisible by 2 because it worked for 4 and 10.",
+      "The sum is divisible by 4, since each number was divisible by 2."
+    ],
+    conclusionIndex: 0,
+    conclusionFeedback: [
+      "",
+      "That conclusion rests on one example. Examples are evidence, never a proof.",
+      "That conclusion claims more than the steps show. The steps factored out a single 2, not a 4. Claiming divisibility by 4 is a missing factor error."
+    ]
+  });
+}
+
+function familyMultiplesOfK(L, k) {
+  var a = L[0], b = L[1];
+  return finishFamily({
+    id: "multiplesOfK",
+    title: "Sum of two multiples of " + k,
+    claimText: "Claim: the sum of any two multiples of " + k + " is a multiple of " + k + ".",
+    vars: [a, b],
+    params: { k: k },
+    claimCheck: function (x, y) { return modPos(x + y, k) === 0; },
+    representation: {
+      prompt: "Multiples of " + k + " are " + k + " times a whole number. Which way of writing the two numbers builds that in, for every multiple at once?",
+      options: [
+        "Let the multiples be " + k + a + " and " + k + b + ".",
+        "Let the numbers be " + a + " and " + b + ".",
+        "Let the multiples be " + k + " and " + (2 * k) + "."
+      ],
+      correctIndex: 0,
+      optionKinds: ["algebraic", "generic", "example"],
+      optionForms: [
+        [function (p, q) { return k * p; }, function (p, q) { return k * q; }],
+        [function (p, q) { return p; }, function (p, q) { return q; }],
+        [function (p, q) { return k; }, function (p, q) { return 2 * k; }]
+      ],
+      optionFeedback: [
+        "",
+        "That representation lets " + a + " and " + b + " be any numbers at all. It does not build in that the numbers are multiples of " + k + ".",
+        "That is one example, not a representation of every case. Examples are evidence, never a proof."
+      ]
+    },
+    steps: [
+      "Write the sum: " + k + a + " + " + k + b + ".",
+      "Group the terms: " + k + a + " + " + k + b + " is a sum of two multiples of " + k + ".",
+      "Factor out " + k + ": " + k + "(" + a + " + " + b + ").",
+      "Note that " + a + " + " + b + " is a whole number, so " + k + "(" + a + " + " + b + ") is " + k + " times a whole number."
+    ],
+    stepForms: [
+      function (p, q) { return k * p + k * q; },
+      function (p, q) { return k * p + k * q; },
+      function (p, q) { return k * (p + q); },
+      function (p, q) { return k * (p + q); }
+    ],
+    distractors: [
+      "Check the claim with " + k + " + " + (2 * k) + " = " + (3 * k) + ", so the sum is a multiple of " + k + ".",
+      "Factor out 2: 2(" + a + " + " + b + ")."
+    ],
+    conclusionOptions: [
+      "The sum equals " + k + " times a whole number, so the sum of any two multiples of " + k + " is a multiple of " + k + ".",
+      "The sum is a multiple of " + k + " because it worked for " + k + " and " + (2 * k) + ".",
+      "The sum is a multiple of " + (k * k) + ", since each number brought a factor of " + k + "."
+    ],
+    conclusionIndex: 0,
+    conclusionFeedback: [
+      "",
+      "That conclusion rests on one example. Examples are evidence, never a proof.",
+      "That conclusion claims more than the steps show. The steps factored out one factor of " + k + ", not two. Claiming a multiple of " + (k * k) + " is a missing factor error."
+    ]
+  });
+}
+
+function familyConsecutiveSumOdd(L) {
+  var n = L[0];
+  return finishFamily({
+    id: "consecutiveSumOdd",
+    title: "Sum of two consecutive integers",
+    claimText: "Claim: the sum of any two consecutive integers is odd.",
+    vars: [n],
+    params: {},
+    claimCheck: function (x, y) {
+      var second = (typeof y === "number") ? y : x + 1;
+      return modPos(x + second, 2) === 1;
+    },
+    representation: {
+      prompt: "Consecutive integers are one apart. Which way of writing the two numbers builds that in, for every starting integer at once?",
+      options: [
+        "Let the integers be " + n + " and " + n + " + 1.",
+        "Let the integers be " + n + " and " + n + ".",
+        "Let the integers be 4 and 5."
+      ],
+      correctIndex: 0,
+      optionKinds: ["algebraic", "wrongRelation", "example"],
+      optionForms: [
+        [function (p) { return p; }, function (p) { return p + 1; }],
+        [function (p) { return p; }, function (p) { return p; }],
+        [function (p) { return 4; }, function (p) { return 5; }]
+      ],
+      optionFeedback: [
+        "",
+        "That representation writes the same number twice. Consecutive integers differ by 1, so the second number has to be one more than the first.",
+        "That is one example, not a representation of every case. Examples are evidence, never a proof."
+      ]
+    },
+    steps: [
+      "Write the sum: " + n + " + (" + n + " + 1).",
+      "Simplify: 2" + n + " + 1.",
+      "Note that 2" + n + " is even, since it is 2 times a whole number.",
+      "So 2" + n + " + 1 is one more than an even number."
+    ],
+    stepForms: [
+      function (p) { return p + (p + 1); },
+      function (p) { return 2 * p + 1; },
+      function (p) { return 2 * p + 1; },
+      function (p) { return 2 * p + 1; }
+    ],
+    distractors: [
+      "Check the claim with 4 + 5 = 9, so the sum is odd.",
+      "Simplify: 2" + n + ", so the sum is even."
+    ],
+    conclusionOptions: [
+      "The sum equals one more than an even number, so the sum of any two consecutive integers is odd.",
+      "The sum is odd because it worked for 4 and 5.",
+      "The sum is even, because doubling a number gives an even result."
+    ],
+    conclusionIndex: 0,
+    conclusionFeedback: [
+      "",
+      "That conclusion rests on one example. Examples are evidence, never a proof.",
+      "That conclusion drops the + 1 from the final step. The simplified sum is 2" + n + " + 1, not 2" + n + ": a missing term error."
+    ]
+  });
+}
+
+function familyThreeConsecutiveDiv3(L) {
+  var n = L[0];
+  return finishFamily({
+    id: "threeConsecutiveDiv3",
+    title: "Sum of three consecutive integers",
+    claimText: "Claim: the sum of any three consecutive integers is divisible by 3.",
+    vars: [n],
+    params: {},
+    claimCheck: function (x, y, z) {
+      var second = (typeof y === "number") ? y : x + 1;
+      var third = (typeof z === "number") ? z : x + 2;
+      return modPos(x + second + third, 3) === 0;
+    },
+    representation: {
+      prompt: "Three consecutive integers step up by 1 each time. Which way of writing them builds that in, for every starting integer at once?",
+      options: [
+        "Let the integers be " + n + ", " + n + " + 1 and " + n + " + 2.",
+        "Let the integers be " + n + ", " + n + " and " + n + ".",
+        "Let the integers be 2, 3 and 4."
+      ],
+      correctIndex: 0,
+      optionKinds: ["algebraic", "wrongRelation", "example"],
+      optionForms: [
+        [function (p) { return p; }, function (p) { return p + 1; }, function (p) { return p + 2; }],
+        [function (p) { return p; }, function (p) { return p; }, function (p) { return p; }],
+        [function (p) { return 2; }, function (p) { return 3; }, function (p) { return 4; }]
+      ],
+      optionFeedback: [
+        "",
+        "That representation writes the same number three times. Consecutive integers step up by 1, so the second and third numbers have to be one and two more than the first.",
+        "That is one example, not a representation of every case. Examples are evidence, never a proof: 2 + 3 + 4 working says nothing about 50 + 51 + 52."
+      ]
+    },
+    steps: [
+      "Write the sum: " + n + " + (" + n + " + 1) + (" + n + " + 2).",
+      "Simplify: 3" + n + " + 3.",
+      "Factor out 3: 3(" + n + " + 1).",
+      "Note that " + n + " + 1 is a whole number, so 3(" + n + " + 1) is 3 times a whole number."
+    ],
+    stepForms: [
+      function (p) { return p + (p + 1) + (p + 2); },
+      function (p) { return 3 * p + 3; },
+      function (p) { return 3 * (p + 1); },
+      function (p) { return 3 * (p + 1); }
+    ],
+    distractors: [
+      "Check the claim with 2 + 3 + 4 = 9, so the sum is divisible by 3.",
+      "Factor out 2: 2(" + n + " + 1)."
+    ],
+    conclusionOptions: [
+      "The sum equals 3 times a whole number, so the sum of any three consecutive integers is divisible by 3.",
+      "The sum is divisible by 3 because it worked for 2, 3 and 4.",
+      "The sum is divisible by 9, since there are three numbers and each step adds 3."
+    ],
+    conclusionIndex: 0,
+    conclusionFeedback: [
+      "",
+      "That conclusion rests on one example. Examples are evidence, never a proof.",
+      "That conclusion claims more than the steps show. The steps factored out a single 3, not a 9. Claiming divisibility by 9 is a missing factor error."
+    ]
+  });
+}
+
+function familyOddTimesOdd(L) {
+  var a = L[0], b = L[1];
+  return finishFamily({
+    id: "oddTimesOdd",
+    title: "Product of two odd numbers",
+    claimText: "Claim: the product of any two odd numbers is odd.",
+    vars: [a, b],
+    params: {},
+    claimCheck: function (x, y) { return modPos(x * y, 2) === 1; },
+    representation: {
+      prompt: "Odd numbers are one more than a multiple of 2. Which way of writing the two numbers builds that in, for every odd number at once?",
+      options: [
+        "Let the odd numbers be 2" + a + " + 1 and 2" + b + " + 1.",
+        "Let the odd numbers be " + a + " and " + b + ".",
+        "Let the odd numbers be 3 and 7."
+      ],
+      correctIndex: 0,
+      optionKinds: ["algebraic", "generic", "example"],
+      optionForms: [
+        [function (p, q) { return 2 * p + 1; }, function (p, q) { return 2 * q + 1; }],
+        [function (p, q) { return p; }, function (p, q) { return q; }],
+        [function (p, q) { return 3; }, function (p, q) { return 7; }]
+      ],
+      optionFeedback: [
+        "",
+        "That representation lets " + a + " and " + b + " be any numbers at all, including even ones. It does not build in that the numbers are odd.",
+        "That is one example, not a representation of every case. Examples are evidence, never a proof."
+      ]
+    },
+    steps: [
+      "Write the product: (2" + a + " + 1)(2" + b + " + 1).",
+      "Expand: 4" + a + b + " + 2" + a + " + 2" + b + " + 1.",
+      "Group as an even part plus 1: 2(2" + a + b + " + " + a + " + " + b + ") + 1.",
+      "Note that 2(2" + a + b + " + " + a + " + " + b + ") is even, so the product is one more than an even number."
+    ],
+    stepForms: [
+      function (p, q) { return (2 * p + 1) * (2 * q + 1); },
+      function (p, q) { return 4 * p * q + 2 * p + 2 * q + 1; },
+      function (p, q) { return 2 * (2 * p * q + p + q) + 1; },
+      function (p, q) { return 2 * (2 * p * q + p + q) + 1; }
+    ],
+    distractors: [
+      "Check the claim with 3 x 7 = 21, so the product is odd.",
+      "Expand: 4" + a + b + " + 1."
+    ],
+    conclusionOptions: [
+      "The product equals one more than an even number, so the product of any two odd numbers is odd.",
+      "The product is odd because it worked for 3 and 7.",
+      "The product is even, because it contains a factor of 2."
+    ],
+    conclusionIndex: 0,
+    conclusionFeedback: [
+      "",
+      "That conclusion rests on one example. Examples are evidence, never a proof.",
+      "That conclusion misreads the final step: the factor of 2 multiplies only part of the expression, and the + 1 outside makes the whole product odd."
+    ]
+  });
+}
+
+function familyConsecutiveOddDiv4(L) {
+  var n = L[0];
+  return finishFamily({
+    id: "consecutiveOddDiv4",
+    title: "Sum of two consecutive odd numbers",
+    claimText: "Claim: the sum of any two consecutive odd numbers is divisible by 4.",
+    vars: [n],
+    params: {},
+    claimCheck: function (x, y) {
+      var second = (typeof y === "number") ? y : x + 2;
+      return modPos(x + second, 4) === 0;
+    },
+    representation: {
+      prompt: "Consecutive odd numbers are two apart, and each is one more than a multiple of 2. Which way of writing them builds both facts in, for every case at once?",
+      options: [
+        "Let the odd numbers be 2" + n + " + 1 and 2" + n + " + 3.",
+        "Let the odd numbers be 2" + n + " + 1 and 2" + n + " + 2.",
+        "Let the odd numbers be 5 and 7."
+      ],
+      correctIndex: 0,
+      optionKinds: ["algebraic", "wrongRelation", "example"],
+      optionForms: [
+        [function (p) { return 2 * p + 1; }, function (p) { return 2 * p + 3; }],
+        [function (p) { return 2 * p + 1; }, function (p) { return 2 * p + 2; }],
+        [function (p) { return 5; }, function (p) { return 7; }]
+      ],
+      optionFeedback: [
+        "",
+        "That representation makes the second number even, not odd: 2" + n + " + 2 is a multiple of 2. Consecutive odd numbers are two apart, so the second must be 2" + n + " + 3.",
+        "That is one example, not a representation of every case. Examples are evidence, never a proof."
+      ]
+    },
+    steps: [
+      "Write the sum: (2" + n + " + 1) + (2" + n + " + 3).",
+      "Simplify: 4" + n + " + 4.",
+      "Factor out 4: 4(" + n + " + 1).",
+      "Note that " + n + " + 1 is a whole number, so 4(" + n + " + 1) is 4 times a whole number."
+    ],
+    stepForms: [
+      function (p) { return (2 * p + 1) + (2 * p + 3); },
+      function (p) { return 4 * p + 4; },
+      function (p) { return 4 * (p + 1); },
+      function (p) { return 4 * (p + 1); }
+    ],
+    distractors: [
+      "Check the claim with 5 + 7 = 12, so the sum is divisible by 4.",
+      "Factor out 2: 2(2" + n + " + 2), and stop there."
+    ],
+    conclusionOptions: [
+      "The sum equals 4 times a whole number, so the sum of any two consecutive odd numbers is divisible by 4.",
+      "The sum is divisible by 4 because it worked for 5 and 7.",
+      "The sum is only known to be divisible by 2, since odd numbers involve 2."
+    ],
+    conclusionIndex: 0,
+    conclusionFeedback: [
+      "",
+      "That conclusion rests on one example. Examples are evidence, never a proof.",
+      "That conclusion stops short of what the steps show. The steps factored out a 4, not just a 2, so the stronger conclusion is the one the proof supports."
+    ]
+  });
+}
+
+function createProofFamilies(rng) {
+  var r = rngOr(rng);
+  function letters() { return rPick(r, LETTER_PAIRS); }
+  var k = rInt(r, 3, 9);
+  return [
+    familyOddPlusOdd(letters()),
+    familyEvenPlusEven(letters()),
+    familyMultiplesOfK(letters(), k),
+    familyConsecutiveSumOdd(letters()),
+    familyThreeConsecutiveDiv3(letters()),
+    familyOddTimesOdd(letters()),
+    familyConsecutiveOddDiv4(letters())
+  ];
+}
+
+function generateGuidedRound(rng) {
+  var families = createProofFamilies(rng);
+  return rPick(rngOr(rng), families);
+}
+
+// ---- Number tricks and create mode: operations as data ----
+
+function applyOps(ops) {
+  var a = 1, b = 0;
+  ops.forEach(function (op) {
+    if (op.op === "mul") { a = a * op.value; b = b * op.value; }
+    else if (op.op === "div") { a = a / op.value; b = b / op.value; }
+    else if (op.op === "add") { b = b + op.value; }
+    else if (op.op === "sub") { b = b - op.value; }
+    else if (op.op === "subOriginal") { a = a - 1; }
+    else if (op.op === "addOriginal") { a = a + 1; }
+  });
+  return { a: a, b: b };
+}
+function applyOpsPrefix(ops, count) { return applyOps(ops.slice(0, count)); }
+
+function runTrick(ops, x) {
+  var values = runTrickTrace(ops, x);
+  return values[values.length - 1];
+}
+function runTrickTrace(ops, x) {
+  var orig = x, cur = x, out = [x];
+  ops.forEach(function (op) {
+    if (op.op === "mul") cur = cur * op.value;
+    else if (op.op === "div") cur = cur / op.value;
+    else if (op.op === "add") cur = cur + op.value;
+    else if (op.op === "sub") cur = cur - op.value;
+    else if (op.op === "subOriginal") cur = cur - orig;
+    else if (op.op === "addOriginal") cur = cur + orig;
+    out.push(cur);
+  });
+  return out;
+}
+
+function opWord(op) {
+  if (op.op === "mul") return "Multiply by " + op.value;
+  if (op.op === "div") return "Divide by " + op.value;
+  if (op.op === "add") return "Add " + op.value;
+  if (op.op === "sub") return "Subtract " + op.value;
+  if (op.op === "subOriginal") return "Subtract your starting number";
+  if (op.op === "addOriginal") return "Add your starting number";
+  return op.op;
+}
+function trickWords(ops) {
+  var words = ["Pick any number."];
+  ops.forEach(function (op) { words.push(opWord(op) + "."); });
+  return words;
+}
+function symbolicStepTexts(ops) {
+  var texts = ["Start: x"];
+  ops.forEach(function (op, i) {
+    var e = applyOpsPrefix(ops, i + 1);
+    texts.push(opWord(op) + ": " + fmtExpr(e.a, e.b));
+  });
+  return texts;
+}
+
+function buildTrick(rng) {
+  var r = rngOr(rng);
+  var family = rPick(r, ["A", "B", "C"]);
+  var ops;
+  if (family === "A") {
+    var m = rInt(r, 2, 6), k = rInt(r, 2, 12);
+    ops = [
+      { op: "mul", value: m },
+      { op: "add", value: m * k },
+      { op: "div", value: m },
+      { op: "subOriginal" }
+    ];
+  } else if (family === "B") {
+    var c = rInt(r, 2, 12);
+    ops = [
+      { op: "add", value: c },
+      { op: "mul", value: 2 },
+      { op: "subOriginal" },
+      { op: "sub", value: c },
+      { op: "subOriginal" }
+    ];
+  } else {
+    var k2 = rInt(r, 2, 12);
+    ops = [
+      { op: "addOriginal" },
+      { op: "add", value: 2 * k2 },
+      { op: "div", value: 2 },
+      { op: "subOriginal" }
+    ];
+  }
+  var fin = applyOps(ops);
+  return {
+    family: family,
+    ops: ops,
+    constant: fin.b,
+    words: trickWords(ops),
+    symbolicSteps: symbolicStepTexts(ops),
+    distractorStep: "Try one starting number, see the result match, and stop: it worked once, so it must always work.",
+    conclusionOptions: [
+      "The symbolic steps end at the plain number " + formatNumber(fin.b) + ", with no x left, so the trick gives " + formatNumber(fin.b) + " for every starting number.",
+      "The trick gives " + formatNumber(fin.b) + " because it worked for the starting numbers I tried.",
+      "The result still depends on the starting number, even though the x disappeared."
+    ],
+    conclusionIndex: 0
+  };
+}
+
+// A division step is clean for integer-preserving paths when, after the
+// division, both symbolic coefficients are still whole numbers. Before the
+// division the coefficients are whole numbers on such a path, so the value
+// is a whole number for every whole-number start exactly when both new
+// coefficients are whole numbers.
+function divisionWarnings(ops) {
+  var warnings = [];
+  for (var i = 0; i < ops.length; i++) {
+    if (ops[i].op !== "div") continue;
+    var before = applyOpsPrefix(ops, i);
+    var after = applyOpsPrefix(ops, i + 1);
+    var beforeWhole = isInt(before.a) && isInt(before.b);
+    if (beforeWhole && !(isInt(after.a) && isInt(after.b))) warnings.push(i);
+  }
+  return warnings;
+}
+
+function evaluateCreate(ops, predicted) {
+  var sym = applyOps(ops);
+  var isConstant = Math.abs(sym.a) < 1e-9;
+  var pred = (predicted === null || predicted === undefined) ? NaN : Number(predicted);
+  var tests = [-3, 0, 2, 7.5, 11].map(function (x) {
+    return { x: x, numeric: runTrick(ops, x), symbolic: sym.a * x + sym.b };
+  });
+  return {
+    symbolic: sym,
+    expression: fmtExpr(sym.a, sym.b),
+    isConstant: isConstant,
+    constant: isConstant ? sym.b : null,
+    matchesPrediction: isConstant && !isNaN(pred) && Math.abs(sym.b - pred) < 1e-9,
+    warnings: divisionWarnings(ops),
+    tests: tests
+  };
+}
+// ==END GENERATOR==
+
+// ---- UI ----
+
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function fmtNum(x) { return formatNumber(x); }
+function parseNum(v) {
+  if (v === null || v === undefined) return NaN;
+  var t = String(v).trim().replace(/,/g, "");
+  if (t === "") return NaN;
+  if (/^-?\d+\s*\/\s*\d+$/.test(t)) {
+    var parts = t.split("/"); var den = Number(parts[1]);
+    return den === 0 ? NaN : Number(parts[0]) / den;
+  }
+  var n = Number(t);
+  return isNaN(n) ? NaN : n;
+}
+function showFeedback(el, html, cls) { el.innerHTML = html; el.className = "feedback show " + cls; }
+function hideFeedback(el) { el.innerHTML = ""; el.className = "feedback"; }
+function checkedPick(name) {
+  var els = document.querySelectorAll("input[name='" + name + "']");
+  for (var i = 0; i < els.length; i++) if (els[i].checked) return parseInt(els[i].value, 10);
+  return -1;
+}
+function shuffledIndices(n) {
+  var idx = [];
+  for (var i = 0; i < n; i++) idx.push(i);
+  return rShuffle(Math.random, idx);
+}
+function renderRadioPicks(containerId, name, options) {
+  var wrap = $(containerId); wrap.innerHTML = "";
+  shuffledIndices(options.length).forEach(function (origIdx) {
+    var lab = document.createElement("label");
+    lab.className = "pickopt";
+    lab.innerHTML = "<input type=\"radio\" name=\"" + name + "\" value=\"" + origIdx + "\"> " + esc(options[origIdx]);
+    wrap.appendChild(lab);
+  });
+}
+
+// Assembly helper: a pool of step cards and an ordered proof column.
+// items: [{text, canonical: indexInCanonicalOrder or -1}]
+function makeAssembly(poolId, listId, emptyId) {
+  var asm = { items: [], pool: [], selected: [] };
+  asm.render = function () {
+    var pool = $(poolId); pool.innerHTML = "";
+    asm.pool.forEach(function (item, pi) {
+      if (asm.selected.indexOf(item) >= 0) return;
+      var btn = document.createElement("button");
+      btn.type = "button"; btn.className = "stepcard"; btn.textContent = item.text;
+      btn.addEventListener("click", function () { asm.selected.push(item); asm.render(); });
+      pool.appendChild(btn);
+    });
+    var list = $(listId); list.innerHTML = "";
+    asm.selected.forEach(function (item) {
+      var li = document.createElement("li");
+      li.textContent = item.text; li.title = "Click to send this step back";
+      li.addEventListener("click", function () {
+        asm.selected = asm.selected.filter(function (s) { return s !== item; }); asm.render();
+      });
+      list.appendChild(li);
+    });
+    $(emptyId).style.display = asm.selected.length ? "none" : "block";
+  };
+  asm.setItems = function (items) {
+    asm.items = items;
+    asm.pool = rShuffle(Math.random, items.slice());
+    asm.selected = [];
+    asm.render();
+  };
+  asm.clear = function () { asm.selected = []; asm.render(); };
+  return asm;
+}
+// Returns null when the selected steps are exactly the canonical order,
+// otherwise a specific feedback string.
+function checkAssembly(asm, canonicalCount) {
+  var sel = asm.selected;
+  var bad = sel.filter(function (it) { return it.canonical < 0; });
+  if (bad.length) {
+    return "This step does not belong in the proof: \"" + bad[0].text + "\" Either it rests on checking one example, which is evidence and never a proof, or its algebra does not follow from the representation. Send it back and finish with steps that do follow.";
+  }
+  if (sel.length < canonicalCount) {
+    return "Your proof is missing steps: you have placed " + sel.length + " of the " + canonicalCount + " steps needed. A proof with a gap does not cover every case, because a reader cannot see how you got from one line to the next.";
+  }
+  if (sel.length > canonicalCount) {
+    return "Your proof has extra steps that are not part of this proof. Remove the ones that do not belong.";
+  }
+  for (var i = 0; i < canonicalCount; i++) {
+    if (sel[i].canonical !== i) {
+      var expected = sel.filter(function (it) { return it.canonical === i; })[0];
+      return "Step out of order at position " + (i + 1) + ": the step \"" + (expected ? expected.text : "") + "\" has to come here, before \"" + sel[i].text + "\" makes sense. Each step must follow from the steps before it.";
+    }
+  }
+  return null;
+}
+
+var state = {
+  mode: "guided",
+  guided: null, guidedDone: false,
+  trick: null, trickDone: false,
+  createOps: [],
+  createDone: false,
+  records: []
+};
+
+function setMode(mode) {
+  state.mode = mode;
+  $("panelGuided").classList.toggle("hidden", mode !== "guided");
+  $("panelTrick").classList.toggle("hidden", mode !== "trick");
+  $("panelCreate").classList.toggle("hidden", mode !== "create");
+  [["modeGuided", "guided"], ["modeTrick", "trick"], ["modeCreate", "create"]].forEach(function (pair) {
+    var on = pair[1] === mode;
+    $(pair[0]).setAttribute("aria-pressed", String(on));
+    $(pair[0]).classList.toggle("secondary", !on);
+  });
+}
+$("modeGuided").addEventListener("click", function () { setMode("guided"); });
+$("modeTrick").addEventListener("click", function () { setMode("trick"); });
+$("modeCreate").addEventListener("click", function () { setMode("create"); });
+
+// ---- Proof Record ----
+
+function renderRecord() {
+  var body = $("dsBody");
+  if (!state.records.length) return;
+  var html = "";
+  state.records.forEach(function (rec, i) {
+    html += "<h3>" + (i + 1) + ". " + esc(rec.kind) + ": " + esc(rec.claim) + "</h3>";
+    html += "<p><strong>Representation chosen:</strong> " + esc(rec.representation) + "</p>";
+    if (rec.symbolicLine) html += "<p><strong>Symbolic line:</strong> Start: x. Finish: " + esc(rec.symbolicLine) + "</p>";
+    html += "<p><strong>Steps, in order:</strong></p><ol>";
+    rec.steps.forEach(function (s) { html += "<li>" + esc(s) + "</li>"; });
+    html += "</ol><p><strong>Conclusion:</strong> " + esc(rec.conclusion) + "</p>";
+  });
+  body.innerHTML = html;
+}
+function addRecord(rec) { state.records.push(rec); renderRecord(); }
+
+$("printBtn").addEventListener("click", function () { window.print(); });
+
+// ---- Mode 1 UI: Guided Proofs ----
+
+var gAssembly = makeAssembly("gPool", "gAssembly", "gAssemblyEmpty");
+
+function newGuidedRound() {
+  state.guided = generateGuidedRound(Math.random);
+  state.guidedDone = false;
+  var fam = state.guided;
+  $("gClaim").textContent = fam.claimText;
+  $("gRepPrompt").textContent = fam.representation.prompt;
+  $("gHint").textContent = state.records.length === 0
+    ? "Scaffolding note: on your first proofs, read the choices closely. The right representation uses symbols that stand for every case at once, and the right conclusion is the one the algebra in the last step actually gives you."
+    : "Remember: examples are evidence, never a proof. A proof must cover every case.";
+  renderRadioPicks("gRepPicks", "gRep", fam.representation.options);
+  renderRadioPicks("gConcPicks", "gConc", fam.conclusionOptions);
+  var items = fam.steps.map(function (text, i) { return { text: text, canonical: i }; });
+  fam.distractors.forEach(function (text) { items.push({ text: text, canonical: -1 }); });
+  gAssembly.setItems(items);
+  hideFeedback($("gFeedback"));
+}
+$("gClearSteps").addEventListener("click", function () { gAssembly.clear(); });
+$("gNew").addEventListener("click", newGuidedRound);
+
+$("gCheck").addEventListener("click", function () {
+  var fam = state.guided, fb = $("gFeedback");
+  var rep = checkedPick("gRep");
+  if (rep < 0) { showFeedback(fb, "<p class=\"sumline\">Stage 1 is not finished.</p><p>Choose a representation first. The representation is what makes the proof cover every case instead of a few examples.</p>", "info"); return; }
+  if (rep !== fam.representation.correctIndex) {
+    showFeedback(fb, "<p class=\"sumline\">Stage 1: the representation does not cover every case.</p><p>" + esc(fam.representation.optionFeedback[rep] || "That representation does not build in the condition in the claim.") + "</p>", "bad"); return;
+  }
+  var stepProblem = checkAssembly(gAssembly, fam.steps.length);
+  if (stepProblem) {
+    showFeedback(fb, "<p class=\"sumline\">Stage 2: the proof steps need work.</p><p>" + esc(stepProblem) + "</p>", "bad"); return;
+  }
+  var conc = checkedPick("gConc");
+  if (conc < 0) { showFeedback(fb, "<p class=\"sumline\">Stage 3 is not finished.</p><p>Choose the conclusion that the final step supports.</p>", "info"); return; }
+  if (conc !== fam.conclusionIndex) {
+    showFeedback(fb, "<p class=\"sumline\">Stage 3: that conclusion does not follow.</p><p>" + esc(fam.conclusionFeedback[conc] || "That conclusion does not match the final step.") + "</p>", "bad"); return;
+  }
+  showFeedback(fb, "<p class=\"sumline\">Proof complete.</p><p>Your representation covered every case, each step followed from the one before it, and the conclusion is exactly what the final step shows: " + esc(fam.conclusionOptions[fam.conclusionIndex]) + " This proof has been added to your Proof Record below.</p>", "ok");
+  if (!state.guidedDone) {
+    state.guidedDone = true;
+    addRecord({
+      kind: "Guided proof",
+      claim: fam.claimText.replace(/^Claim: /, ""),
+      representation: fam.representation.options[fam.representation.correctIndex],
+      steps: fam.steps.slice(),
+      conclusion: fam.conclusionOptions[fam.conclusionIndex]
+    });
+  }
+});
+
+// ---- Mode 2 UI: Number Trick Proofs ----
+
+var tAssembly = makeAssembly("tPool", "tAssembly", "tAssemblyEmpty");
+
+function newTrickRound() {
+  state.trick = buildTrick(Math.random);
+  state.trickDone = false;
+  var trick = state.trick;
+  var words = $("tWords"); words.innerHTML = "";
+  trick.words.forEach(function (w) {
+    var li = document.createElement("li"); li.textContent = w; words.appendChild(li);
+  });
+  $("tRunOut").innerHTML = "";
+  renderRadioPicks("tConcPicks", "tConc", trick.conclusionOptions);
+  var items = trick.symbolicSteps.map(function (text, i) { return { text: text, canonical: i }; });
+  items.push({ text: trick.distractorStep, canonical: -1 });
+  tAssembly.setItems(items);
+  hideFeedback($("tFeedback"));
+}
+$("tClearSteps").addEventListener("click", function () { tAssembly.clear(); });
+$("tNew").addEventListener("click", newTrickRound);
+
+$("tRun").addEventListener("click", function () {
+  var trick = state.trick;
+  var xs = [parseNum($("tX1").value), parseNum($("tX2").value)];
+  if (xs.some(isNaN)) { $("tRunOut").innerHTML = "<p class=\"note\">Enter both starting numbers first. Fractions like 1/2 work too.</p>"; return; }
+  var html = "";
+  xs.forEach(function (x) {
+    var trace = runTrickTrace(trick.ops, x);
+    html += "<h3>Starting number: " + fmtNum(x) + "</h3><table class=\"plan\"><tr><th>Step</th><th>Value</th></tr>";
+    html += "<tr><td>Start</td><td>" + fmtNum(trace[0]) + "</td></tr>";
+    trick.ops.forEach(function (op, i) {
+      html += "<tr><td>" + esc(opWord(op)) + "</td><td>" + fmtNum(trace[i + 1]) + "</td></tr>";
+    });
+    html += "</table><p>Final result: <strong>" + fmtNum(trace[trace.length - 1]) + "</strong></p>";
+  });
+  html += "<p class=\"note\">Both starting numbers landed on " + fmtNum(trick.constant) + ". That is good evidence the trick is constant, but it is not a proof: two numbers, or two hundred numbers, still leave infinitely many numbers untried. The symbolic steps below are the proof.</p>";
+  $("tRunOut").innerHTML = html;
+});
+
+$("tCheck").addEventListener("click", function () {
+  var trick = state.trick, fb = $("tFeedback");
+  var stepProblem = checkAssembly(tAssembly, trick.symbolicSteps.length);
+  if (stepProblem) {
+    showFeedback(fb, "<p class=\"sumline\">The symbolic proof needs work.</p><p>" + esc(stepProblem) + "</p>", "bad"); return;
+  }
+  var conc = checkedPick("tConc");
+  if (conc < 0) { showFeedback(fb, "<p class=\"sumline\">Choose a conclusion first.</p><p>The conclusion should say what the symbols show: the x is gone, so the result cannot depend on the starting number.</p>", "info"); return; }
+  if (conc !== trick.conclusionIndex) {
+    var why = conc === 1
+      ? "That conclusion rests on the numbers you tried. Examples are evidence, never a proof: the symbolic steps are what cover every starting number."
+      : "That conclusion contradicts the symbolic steps: the final line has no x in it, so the result cannot depend on the starting number.";
+    showFeedback(fb, "<p class=\"sumline\">That conclusion does not follow.</p><p>" + esc(why) + "</p>", "bad"); return;
+  }
+  showFeedback(fb, "<p class=\"sumline\">Proof complete.</p><p>The symbolic steps start at x and end at the plain number " + fmtNum(trick.constant) + ", with no x left. That is why the trick works for every starting number, not just the ones you ran. This proof has been added to your Proof Record below.</p>", "ok");
+  if (!state.trickDone) {
+    state.trickDone = true;
+    addRecord({
+      kind: "Number trick proof",
+      claim: "This number trick always gives " + fmtNum(trick.constant) + ", no matter what number you start with.",
+      representation: "Let the starting number be x.",
+      steps: trick.symbolicSteps.slice(),
+      conclusion: trick.conclusionOptions[trick.conclusionIndex]
+    });
+  }
+});
+
+// ---- Mode 3 UI: Create Your Own Trick ----
+
+function renderCreate() {
+  var ops = state.createOps;
+  var sym = applyOps(ops);
+  $("crExpr").textContent = fmtExpr(sym.a, sym.b);
+  var list = $("crOps"); list.innerHTML = "";
+  ops.forEach(function (op) {
+    var li = document.createElement("li"); li.textContent = opWord(op) + "."; list.appendChild(li);
+  });
+  $("crOpsEmpty").style.display = ops.length ? "none" : "block";
+  var warns = divisionWarnings(ops);
+  if (warns.length) {
+    $("crWarn").innerHTML = "<div class=\"feedback show info\"><p class=\"sumline\">A note about one of your divide steps.</p><p>Step " + (warns[0] + 1) + " (" + esc(opWord(ops[warns[0]])) + ") can give fractions for whole-number starting numbers, because the expression at that point does not split evenly by " + ops[warns[0]].value + ". The mathematics is still valid, but the write-up is messier. You may want to build up a multiple first, for example by multiplying or adding before you divide.</p></div>";
+  } else {
+    $("crWarn").innerHTML = "";
+  }
+}
+function pushOp(op) {
+  if (state.createOps.length >= 7) {
+    showFeedback($("crFeedback"), "<p class=\"sumline\">Your trick already has 7 operations, the maximum here.</p><p>Undo one, or check the trick as it stands.</p>", "info");
+    return;
+  }
+  state.createOps.push(op); state.createDone = false; renderCreate();
+}
+function clampedInt(id, min, max) {
+  var v = parseInt($(id).value, 10);
+  if (isNaN(v)) return min;
+  return Math.max(min, Math.min(max, v));
+}
+$("crAdd").addEventListener("click", function () { pushOp({ op: "add", value: clampedInt("crNum", 1, 20) }); });
+$("crSub").addEventListener("click", function () { pushOp({ op: "sub", value: clampedInt("crNum", 1, 20) }); });
+$("crMul").addEventListener("click", function () { pushOp({ op: "mul", value: clampedInt("crFactor", 2, 6) }); });
+$("crDiv").addEventListener("click", function () { pushOp({ op: "div", value: clampedInt("crFactor", 2, 6) }); });
+$("crAddOrig").addEventListener("click", function () { pushOp({ op: "addOriginal" }); });
+$("crSubOrig").addEventListener("click", function () { pushOp({ op: "subOriginal" }); });
+$("crUndo").addEventListener("click", function () { state.createOps.pop(); state.createDone = false; renderCreate(); });
+$("crClear").addEventListener("click", function () { state.createOps = []; state.createDone = false; renderCreate(); });
+
+$("crCheck").addEventListener("click", function () {
+  var fb = $("crFeedback"), ops = state.createOps;
+  if (!ops.length) { showFeedback(fb, "<p class=\"sumline\">Add some operations first.</p><p>Your trick starts at x. Build a list of operations, then check it.</p>", "info"); return; }
+  var predicted = parseNum($("crPredict").value);
+  var result = evaluateCreate(ops, predicted);
+  var lines = result.tests.map(function (t) { return "Start " + fmtNum(t.x) + ": gives " + fmtNum(t.numeric) + "."; }).join(" ");
+  if (!result.isConstant) {
+    showFeedback(fb, "<p class=\"sumline\">Not a constant trick yet: x is still in the final expression.</p><p>Your trick actually gives <strong>" + esc(result.expression) + "</strong>, which still depends on the starting number. Check with numbers: " + esc(lines) + " To make a constant trick, get rid of x completely. Operations that remove x include subtracting your starting number when the expression is x plus something, or dividing after building up a multiple of x.</p>", "bad");
+    state.createDone = false; return;
+  }
+  if (isNaN(predicted)) {
+    showFeedback(fb, "<p class=\"sumline\">Your trick is constant. Now predict it.</p><p>Your trick always gives <strong>" + fmtNum(result.constant) + "</strong>, because the symbolic line ends at that plain number. Type that value as your predicted final result, write your conclusion, then check again.</p>", "info");
+    state.createDone = false; return;
+  }
+  if (!result.matchesPrediction) {
+    showFeedback(fb, "<p class=\"sumline\">Your trick is constant, but not the constant you predicted.</p><p>You predicted " + fmtNum(predicted) + ", but the symbolic steps end at <strong>" + fmtNum(result.constant) + "</strong>. Check with numbers: " + esc(lines) + " Fix your prediction (or adjust the trick) and check again.</p>", "bad");
+    state.createDone = false; return;
+  }
+  var conclusion = $("crConclusion").value.trim();
+  if (!conclusion) {
+    showFeedback(fb, "<p class=\"sumline\">Your trick checks out. One last step: write your conclusion.</p><p>Your trick always gives " + fmtNum(result.constant) + ". Write, in your own words, why x disappears, then check again. Your conclusion goes on your Proof Record, so it is worth writing carefully.</p>", "info");
+    state.createDone = false; return;
+  }
+  var warnNote = result.warnings.length
+    ? " Note: one of your divide steps can give fractions for whole-number starts. That is still valid, and your symbolic steps show why the final result is exact."
+    : "";
+  showFeedback(fb, "<p class=\"sumline\">Your trick works, and the proof is yours.</p><p>The symbolic steps end at the plain number " + fmtNum(result.constant) + ", with no x left, which proves the result for every starting number. Check with numbers: " + esc(lines) + warnNote + " Your trick, its symbolic line, and your conclusion have been added to your Proof Record below. Print it if your teacher asks for it.</p>", "ok");
+  if (!state.createDone) {
+    state.createDone = true;
+    var stepTexts = ["Pick any number, call it x."];
+    ops.forEach(function (op, i) {
+      var e = applyOpsPrefix(ops, i + 1);
+      stepTexts.push(opWord(op) + ": " + fmtExpr(e.a, e.b) + ".");
+    });
+    addRecord({
+      kind: "My own trick (create mode)",
+      claim: "My trick always gives " + fmtNum(result.constant) + ", no matter what number you start with.",
+      representation: "Let the starting number be x.",
+      symbolicLine: fmtExpr(result.symbolic.a, result.symbolic.b),
+      steps: stepTexts,
+      conclusion: conclusion
+    });
+  }
+});
+
+// Start
+newGuidedRound();
+newTrickRound();
+renderCreate();
+</script>
+</body>
+</html>
